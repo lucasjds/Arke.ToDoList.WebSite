@@ -7,6 +7,7 @@
 @using System.Linq
 @using System.Text.Json.Serialization
 @using Arke.ToDoList.WebSite.Services
+@using Arke.ToDoList.WebSite.Shared
 
 <h1>Board Task</h1>
 
@@ -48,7 +49,7 @@
             <h5 class="taskName">Id: @task.Id</h5>
             <p class="taskDescription">Description: @task.Description</p>
             <p class="taskStatus">Status: @task.Status</p>
-            <button @onclick="() => EditTask(task)">Edit</button>
+            <button @onclick="() => StartEditTask(task)">Edit</button>
             <button @onclick="() => ToggleStatusSelector(task)">Change Status</button>
             @if (statusSelectorVisible.Contains(task))
             {
@@ -85,30 +86,11 @@
         {
             if (isEditing)
             {
-                // Update existing task
-                if (taskToEdit != null)
-                {
-                    taskToEdit.Name = currentTask.Name;
-                    taskToEdit.Description = currentTask.Description;
-                    taskToEdit.Status = currentTask.Status;
-                    await Task.Run(() => TaskService.UpdateTaskAsync(currentTask.Id, taskToEdit));
-                    await JS.InvokeVoidAsync("alert", "Task updated successfully!");
-                    // Reset the reference
-                    taskToEdit = null;
-                }
+                await UpdateTask();
             }
             else
             {
-                // Add new task
-                var newTask = new TaskItem
-                    {
-                        Name = currentTask.Name,
-                        Description = currentTask.Description,
-                        Status = currentTask.Status
-                    };
-                var result = await Task.Run(() => TaskService.AddTaskAsync(newTask));
-                await JS.InvokeVoidAsync("alert", "Task added successfully!");
-                tasks.Add(result);
+                await AddTask();
             }
         }
         catch (Exception ex)
@@ -122,7 +104,36 @@
 
     }
 
-    private void EditTask(TaskItem task)
+    private async Task UpdateTask()
+    {
+        // Update existing task
+        if (taskToEdit != null)
+        {
+            taskToEdit.Name = currentTask.Name;
+            taskToEdit.Description = currentTask.Description;
+            taskToEdit.Status = currentTask.Status;
+            await Task.Run(() => TaskService.UpdateTaskAsync(currentTask.Id, taskToEdit));
+            await JS.InvokeVoidAsync("alert", "Task updated successfully!");
+            // Reset the reference
+            taskToEdit = null;
+        }
+    }
+
+    private async Task AddTask()
+    {
+        // Add new task
+        var newTask = new TaskItem
+            {
+                Name = currentTask.Name,
+                Description = currentTask.Description,
+                Status = currentTask.Status
+            };
+        var result = await Task.Run(() => TaskService.AddTaskAsync(newTask));
+        await JS.InvokeVoidAsync("alert", "Task added successfully!");
+        tasks.Add(result);
+    }
+
+    private void StartEditTask(TaskItem task)
     {
         statusSelectorVisible = new HashSet<TaskItem>();
         currentTask = new TaskItem
@@ -185,18 +196,5 @@
         {
             await JS.InvokeVoidAsync("alert", ex.Message);
         }
-
-    }
-
-    public class TaskItem
-    {
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
-        [JsonPropertyName("name")]
-        public string Name { get; set; }
-        [JsonPropertyName("description")]
-        public string Description { get; set; }
-        [JsonPropertyName("status")]
-        public string Status { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using static Arke.ToDoList.WebSite.Pages.Home;
+﻿using Arke.ToDoList.WebSite.Shared;
 
 namespace Arke.ToDoList.WebSite.Services;
 
