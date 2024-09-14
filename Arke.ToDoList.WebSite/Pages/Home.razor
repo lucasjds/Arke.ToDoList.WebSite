@@ -65,7 +65,7 @@
 </div>
 
 @code {
-    [Inject] private TaskService TaskService { get; set; }
+    [Inject] private ITaskService TaskService { get; set; }
     private List<TaskItem> tasks = new();
     private TaskItem currentTask = new();
     private TaskItem taskToEdit = null;

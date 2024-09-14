@@ -12,7 +12,7 @@ builder.Services.AddHttpClient("HttpClientAPI", client =>
     client.BaseAddress = new Uri("http://localhost:6500/");
 });
 
-builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
 
 await builder.Build().RunAsync();
 

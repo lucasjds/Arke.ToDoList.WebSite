@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Arke.ToDoList.WebSite.Services;
 
-public class TaskService
+public class TaskService : ITaskService
 {
     private readonly HttpClient _httpClient;
     public TaskService(IHttpClientFactory httpClientFactory)
