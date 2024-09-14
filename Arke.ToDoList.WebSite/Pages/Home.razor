@@ -78,7 +78,7 @@
         tasks = list.ToList();
     }
 
-    private void HandleSubmit()
+    private async Task HandleSubmit()
     {
         if (isEditing)
         {
@@ -101,7 +101,7 @@
                     Description = currentTask.Description,
                     Status = currentTask.Status
                 };
-            tasks.Add(newTask);
+            tasks.Add(await Task.Run(() => TaskService.AddTaskAsync(newTask)));
         }
 
         ResetForm();
