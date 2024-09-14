@@ -1,11 +1,4 @@
-﻿using static Arke.ToDoList.WebSite.Pages.Home;
-using System.Net.Http.Json;
-using System.Net.Http;
-using System.Net;
-using System.Text.Json;
-using System;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Http.Json;
 using Arke.ToDoList.WebSite.Shared;
 
 namespace Arke.ToDoList.WebSite.Services;
