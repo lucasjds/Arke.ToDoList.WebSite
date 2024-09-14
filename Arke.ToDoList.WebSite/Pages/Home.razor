@@ -1,9 +1,7 @@
-﻿@page "/"
-
-<PageTitle>Board Task</PageTitle>
+﻿<PageTitle>Board Task</PageTitle>
 
 <h1>Welcome to Board Task</h1>
-
+@page "/"
 @page "/tasks"
 @using System.Collections.Generic
 @using System.Linq
@@ -44,8 +42,9 @@
     @foreach (var task in tasks)
     {
         <div class="task">
-            <h3 class="taskName">@task.Name</h3>
-            <p class="taskDescription">@task.Description</p>
+            <h3 class="taskName">Name: @task.Name</h3>
+            <h5 class="taskName">Id: @task.Id</h5>
+            <p class="taskDescription">Description: @task.Description</p>
             <p class="taskStatus">Status: @task.Status</p>
             <button @onclick="() => EditTask(task)">Edit</button>
             <button @onclick="() => ToggleStatusSelector(task)">Change Status</button>
@@ -63,9 +62,9 @@
         </div>
     }
 </div>
-
 @code {
     [Inject] private ITaskService TaskService { get; set; }
+    [Inject] IJSRuntime JS { get; set; }
     private List<TaskItem> tasks = new();
     private TaskItem currentTask = new();
     private TaskItem taskToEdit = null;
@@ -80,31 +79,45 @@
 
     private async Task HandleSubmit()
     {
-        if (isEditing)
+        try
         {
-            // Update existing task
-            if (taskToEdit != null)
+            if (isEditing)
             {
-                taskToEdit.Name = currentTask.Name;
-                taskToEdit.Description = currentTask.Description;
-                taskToEdit.Status = currentTask.Status;
-                // Reset the reference
-                taskToEdit = null;
+                // Update existing task
+                if (taskToEdit != null)
+                {
+                    taskToEdit.Name = currentTask.Name;
+                    taskToEdit.Description = currentTask.Description;
+                    taskToEdit.Status = currentTask.Status;
+                    await Task.Run(() => TaskService.UpdateTaskAsync(currentTask.Id, taskToEdit));
+                    await JS.InvokeVoidAsync("alert", "Task updated successfully!");
+                    // Reset the reference
+                    taskToEdit = null;
+                }
+            }
+            else
+            {
+                // Add new task
+                var newTask = new TaskItem
+                    {
+                        Name = currentTask.Name,
+                        Description = currentTask.Description,
+                        Status = currentTask.Status
+                    };
+                var result = await Task.Run(() => TaskService.AddTaskAsync(newTask));
+                await JS.InvokeVoidAsync("alert", "Task added successfully!");
+                tasks.Add(result);
             }
         }
-        else
+        catch (Exception ex)
         {
-            // Add new task
-            var newTask = new TaskItem
-                {
-                    Name = currentTask.Name,
-                    Description = currentTask.Description,
-                    Status = currentTask.Status
-                };
-            tasks.Add(await Task.Run(() => TaskService.AddTaskAsync(newTask)));
+            await JS.InvokeVoidAsync("alert", ex.Message);
+        }
+        finally
+        {
+            ResetForm();
         }
 
-        ResetForm();
     }
 
     private void EditTask(TaskItem task)
@@ -112,6 +125,7 @@
         statusSelectorVisible = new HashSet<TaskItem>();
         currentTask = new TaskItem
             {
+                Id = task.Id,
                 Name = task.Name,
                 Description = task.Description,
                 Status = task.Status

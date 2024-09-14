@@ -36,14 +36,25 @@ public class TaskService : ITaskService
 
     public async Task<TaskItem> AddTaskAsync(TaskItem task)
     {
-        StringContent content = new StringContent(JsonSerializer.Serialize(task),
-                                                 Encoding.UTF8, "application/json");
-        using var response = await _httpClient.PostAsync("Task", content);
+        using var response = await _httpClient.PostAsJsonAsync("Task", task);
         if (response.IsSuccessStatusCode)
         {
             var taskItem = await response.Content.ReadFromJsonAsync<TaskItem>();
             return taskItem;
         }
-        return null;
+        var message = await response.Content.ReadAsStringAsync();
+        throw new Exception($"Status Code : {response.StatusCode} - {message}");
+    }
+
+    public async Task<TaskItem> UpdateTaskAsync(string id, TaskItem task)
+    {
+        using var response = await _httpClient.PutAsJsonAsync($"Task/{id}", task);
+        if (response.IsSuccessStatusCode)
+        {
+            var taskItem = await response.Content.ReadFromJsonAsync<TaskItem>();
+            return taskItem;
+        }
+        var message = await response.Content.ReadAsStringAsync();
+        throw new Exception($"Status Code : {response.StatusCode} - {message}");
     }
 }
