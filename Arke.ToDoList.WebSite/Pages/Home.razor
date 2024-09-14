@@ -8,6 +8,7 @@
 @using System.Collections.Generic
 @using System.Linq
 @using System.Text.Json.Serialization
+@using Arke.ToDoList.WebSite.Services
 
 <h1>Board Task</h1>
 
@@ -64,12 +65,18 @@
 </div>
 
 @code {
-
-    private List<TaskItem> tasks = new List<TaskItem>();
-    private TaskItem currentTask = new TaskItem();
+    [Inject] private TaskService TaskService { get; set; }
+    private List<TaskItem> tasks = new();
+    private TaskItem currentTask = new();
     private TaskItem taskToEdit = null;
     private bool isEditing = false;
     private HashSet<TaskItem> statusSelectorVisible = new HashSet<TaskItem>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var list = await Task.Run(() => TaskService.GetTasksAsync());
+        tasks = list.ToList();
+    }
 
     private void HandleSubmit()
     {
@@ -142,7 +149,7 @@
     public class TaskItem
     {
         [JsonPropertyName("id")]
-        public string Id { get; set; } 
+        public string Id { get; set; }
         [JsonPropertyName("name")]
         public string Name { get; set; }
         [JsonPropertyName("description")]
