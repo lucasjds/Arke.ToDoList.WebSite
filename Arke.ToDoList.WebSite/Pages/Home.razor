@@ -20,11 +20,11 @@
     </div>
     <div class="form-group">
         <label for="taskDescription">Description:</label>
-        <textarea id="taskDescription" @bind="currentTask.Description" rows="4" required></textarea>
+        <textarea id="taskDescription" @bind="currentTask.Description" disabled="@isEditing" rows="4" required></textarea>
     </div>
     <div class="form-group">
         <label for="taskStatus">Status:</label>
-        <select id="taskStatus" @bind="currentTask.Status" required>
+        <select id="taskStatus" @bind="currentTask.Status" disabled="@isEditing" required>
             <option value=""></option>
             <option value="ToDo">Todo</option>
             <option value="InProgress">InProgress</option>
@@ -142,12 +142,9 @@
         {
             try
             {
-                var result = await Task.Run(() => TaskService.DeleteCompletedTasks());
-                if (result)
-                {
-                    tasks.RemoveAll(x => x.Status == "Done");
-                    await JS.InvokeVoidAsync("alert", "everything deleted!");
-                }
+                await Task.Run(() => TaskService.DeleteCompletedTasks());
+                await JS.InvokeVoidAsync("alert", "everything deleted!");
+                tasks.RemoveAll(x => x.Status == "Done");
             }
             catch (Exception ex)
             {
@@ -176,10 +173,19 @@
         }
     }
 
-    private void UpdateStatus(TaskItem task, string newStatus)
+    private async Task UpdateStatus(TaskItem task, string newStatus)
     {
-        task.Status = newStatus;
-        statusSelectorVisible.Remove(task);
+        try
+        {
+            await Task.Run(() => TaskService.ChangeStatus(task.Id, newStatus));
+            task.Status = newStatus;
+            statusSelectorVisible.Remove(task);
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", ex.Message);
+        }
+
     }
 
     public class TaskItem

@@ -19,20 +19,13 @@ public class TaskService : ITaskService
 
     public async Task<IEnumerable<TaskItem>> GetTasksAsync()
     {
-        try
+        var response = await _httpClient.GetAsync("Task");
+        if (response.IsSuccessStatusCode)
         {
-            var response = await _httpClient.GetAsync("Task");
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadFromJsonAsync<IEnumerable<TaskItem>>();
-            }
+            return await response.Content.ReadFromJsonAsync<IEnumerable<TaskItem>>();
         }
-        catch (Exception ex)
-        {
-            throw;
-        }
-
-        return null;
+        var message = await response.Content.ReadAsStringAsync();
+        throw new Exception($"Status Code : {response.StatusCode} - {message}");
     }
 
     public async Task<TaskItem> AddTaskAsync(TaskItem task)
@@ -59,17 +52,23 @@ public class TaskService : ITaskService
         throw new Exception($"Status Code : {response.StatusCode} - {message}");
     }
 
-    public Task<bool> ChangeStatus(string id, bool changeStatus)
+    public async Task ChangeStatus(string id, string status)
     {
-        throw new NotImplementedException();
+        using var result = await _httpClient.PatchAsJsonAsync($"Task/{id}", new List<object> { new { path = "/status", value = status } });
+        if (result.IsSuccessStatusCode)
+        {
+            return;
+        }
+        var message = await result.Content.ReadAsStringAsync();
+        throw new Exception($"Status Code : {result.StatusCode} - {message}");
     }
 
-    public async Task<bool> DeleteCompletedTasks()
+    public async Task DeleteCompletedTasks()
     {
         using var result = await _httpClient.DeleteAsync($"Task/completed-tasks");
         if (result.IsSuccessStatusCode)
         {
-            return true;
+            return;
         }
         var message = await result.Content.ReadAsStringAsync();
         throw new Exception($"Status Code : {result.StatusCode} - {message}");
