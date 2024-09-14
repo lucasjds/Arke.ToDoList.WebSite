@@ -3,3 +3,151 @@
 <PageTitle>Board Task</PageTitle>
 
 <h1>Welcome to Board Task</h1>
+
+@page "/tasks"
+@using System.Collections.Generic
+@using System.Linq
+@using System.Text.Json.Serialization
+
+<h1>Board Task</h1>
+
+<h2>@(isEditing ? "Edit Task" : "Add new Task")</h2>
+<form @onsubmit="HandleSubmit">
+    <div class="form-group">
+        <label for="taskName">Name:</label>
+        <input type="text" id="taskName" @bind="currentTask.Name" required />
+    </div>
+    <div class="form-group">
+        <label for="taskDescription">Description:</label>
+        <textarea id="taskDescription" @bind="currentTask.Description" rows="4" required></textarea>
+    </div>
+    <div class="form-group">
+        <label for="taskStatus">Status:</label>
+        <select id="taskStatus" @bind="currentTask.Status" required>
+            <option value=""></option>
+            <option value="ToDo">Todo</option>
+            <option value="InProgress">InProgress</option>
+            <option value="Done">Done</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <button type="submit">@((isEditing ? "Save" : "Add Task"))</button>
+        @if (isEditing)
+        {
+            <button type="button" @onclick="ResetForm">Cancel</button>
+        }
+    </div>
+</form>
+
+<div id="taskContainer">
+    @foreach (var task in tasks)
+    {
+        <div class="task">
+            <h3 class="taskName">@task.Name</h3>
+            <p class="taskDescription">@task.Description</p>
+            <p class="taskStatus">Status: @task.Status</p>
+            <button @onclick="() => EditTask(task)">Edit</button>
+            <button @onclick="() => ToggleStatusSelector(task)">Change Status</button>
+            @if (statusSelectorVisible.Contains(task))
+            {
+                <div class="status-select">
+                    <select @onchange="(e) => UpdateStatus(task, e.Value.ToString())">
+                        <option value=""></option>
+                        <option value="ToDo">Todo</option>
+                        <option value="InProgress">InProgress</option>
+                        <option value="Done">Done</option>
+                    </select>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+
+    private List<TaskItem> tasks = new List<TaskItem>();
+    private TaskItem currentTask = new TaskItem();
+    private TaskItem taskToEdit = null;
+    private bool isEditing = false;
+    private HashSet<TaskItem> statusSelectorVisible = new HashSet<TaskItem>();
+
+    private void HandleSubmit()
+    {
+        if (isEditing)
+        {
+            // Update existing task
+            if (taskToEdit != null)
+            {
+                taskToEdit.Name = currentTask.Name;
+                taskToEdit.Description = currentTask.Description;
+                taskToEdit.Status = currentTask.Status;
+                // Reset the reference
+                taskToEdit = null;
+            }
+        }
+        else
+        {
+            // Add new task
+            var newTask = new TaskItem
+                {
+                    Name = currentTask.Name,
+                    Description = currentTask.Description,
+                    Status = currentTask.Status
+                };
+            tasks.Add(newTask);
+        }
+
+        ResetForm();
+    }
+
+    private void EditTask(TaskItem task)
+    {
+        statusSelectorVisible = new HashSet<TaskItem>();
+        currentTask = new TaskItem
+            {
+                Name = task.Name,
+                Description = task.Description,
+                Status = task.Status
+            };
+        taskToEdit = task; // Keep reference to the task to edit
+        isEditing = true;
+    }
+
+    private void ResetForm()
+    {
+        currentTask = new TaskItem();
+        isEditing = false;
+        taskToEdit = null;
+    }
+
+    private void ToggleStatusSelector(TaskItem task)
+    {
+        ResetForm();
+        if (statusSelectorVisible.Contains(task))
+        {
+            statusSelectorVisible.Remove(task);
+        }
+        else
+        {
+            statusSelectorVisible.Add(task);
+        }
+    }
+
+    private void UpdateStatus(TaskItem task, string newStatus)
+    {
+        task.Status = newStatus;
+        statusSelectorVisible.Remove(task);
+    }
+
+    public class TaskItem
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } 
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+        [JsonPropertyName("status")]
+        public string Status { get; set; }
+    }
+}
