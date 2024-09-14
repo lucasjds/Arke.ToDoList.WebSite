@@ -5,6 +5,7 @@ using System.Net;
 using System.Text.Json;
 using System;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Arke.ToDoList.WebSite.Services;
 
@@ -56,5 +57,21 @@ public class TaskService : ITaskService
         }
         var message = await response.Content.ReadAsStringAsync();
         throw new Exception($"Status Code : {response.StatusCode} - {message}");
+    }
+
+    public Task<bool> ChangeStatus(string id, bool changeStatus)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<bool> DeleteCompletedTasks()
+    {
+        using var result = await _httpClient.DeleteAsync($"Task/completed-tasks");
+        if (result.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        var message = await result.Content.ReadAsStringAsync();
+        throw new Exception($"Status Code : {result.StatusCode} - {message}");
     }
 }

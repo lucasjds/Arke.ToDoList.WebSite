@@ -10,6 +10,8 @@
 
 <h1>Board Task</h1>
 
+<button type="button" @onclick="DeleteCompletedTasks">Delete all completed tasks</button>
+
 <h2>@(isEditing ? "Edit Task" : "Add new Task")</h2>
 <form @onsubmit="HandleSubmit">
     <div class="form-group">
@@ -132,6 +134,26 @@
             };
         taskToEdit = task; // Keep reference to the task to edit
         isEditing = true;
+    }
+
+    private async Task DeleteCompletedTasks()
+    {
+        if (tasks.Any(x => x.Status == "Done"))
+        {
+            try
+            {
+                var result = await Task.Run(() => TaskService.DeleteCompletedTasks());
+                if (result)
+                {
+                    tasks.RemoveAll(x => x.Status == "Done");
+                    await JS.InvokeVoidAsync("alert", "everything deleted!");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", ex.Message);
+            }
+        }
     }
 
     private void ResetForm()
