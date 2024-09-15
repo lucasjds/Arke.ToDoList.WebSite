@@ -7,6 +7,7 @@
 @using System.Collections.Generic
 @using System.Linq
 @using System.Text.Json.Serialization
+@using Arke.ToDoList.WebSite.Components
 @using Arke.ToDoList.WebSite.Services
 @using Arke.ToDoList.WebSite.Shared
 
@@ -14,33 +15,7 @@
 
 <button type="button" @onclick="DeleteCompletedTasks">Delete all completed tasks</button>
 
-<h2>@(isEditing ? "Edit Task" : "Add new Task")</h2>
-<form @onsubmit="HandleSubmit">
-    <div class="form-group">
-        <label for="taskName">Name:</label>
-        <input type="text" id="taskName" @bind="currentTask.Name" required />
-    </div>
-    <div class="form-group">
-        <label for="taskDescription">Description:</label>
-        <textarea id="taskDescription" @bind="currentTask.Description" disabled="@isEditing" rows="4" required></textarea>
-    </div>
-    <div class="form-group">
-        <label for="taskStatus">Status:</label>
-        <select id="taskStatus" @bind="currentTask.Status" disabled="@isEditing" required>
-            <option value=""></option>
-            <option value="ToDo">Todo</option>
-            <option value="InProgress">InProgress</option>
-            <option value="Done">Done</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <button type="submit">@((isEditing ? "Save" : "Add Task"))</button>
-        @if (isEditing)
-        {
-            <button type="button" @onclick="ResetForm">Cancel</button>
-        }
-    </div>
-</form>
+<TaskForm CurrentTask="currentTask" OnSubmit="HandleSubmit" IsEditing="isEditing" OnCancel="ResetForm" />
 
 <div id="taskContainer">
     @foreach (var task in tasks)

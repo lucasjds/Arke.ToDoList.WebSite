@@ -1,0 +1,45 @@
+﻿@using Arke.ToDoList.WebSite.Shared
+@code {
+    [Parameter] public TaskItem CurrentTask { get; set; } = new TaskItem();
+    [Parameter] public EventCallback OnSubmit { get; set; }
+    [Parameter] public bool IsEditing { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private async Task HandleSubmit()
+    {
+        await OnSubmit.InvokeAsync(null);
+    }
+
+    private async Task HandleCancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}
+
+<h2>@(IsEditing ? "Edit Task" : "Add new Task")</h2>
+<form @onsubmit="HandleSubmit">
+    <div class="form-group">
+        <label for="taskName">Name:</label>
+        <input type="text" id="taskName" @bind="CurrentTask.Name" required />
+    </div>
+    <div class="form-group">
+        <label for="taskDescription">Description:</label>
+        <textarea id="taskDescription" @bind="CurrentTask.Description" disabled="@IsEditing" rows="4" required></textarea>
+    </div>
+    <div class="form-group">
+        <label for="taskStatus">Status:</label>
+        <select id="taskStatus" @bind="CurrentTask.Status" disabled="@IsEditing" required>
+            <option value=""></option>
+            <option value="ToDo">Todo</option>
+            <option value="InProgress">InProgress</option>
+            <option value="Done">Done</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <button type="submit">@((IsEditing ? "Save" : "Add Task"))</button>
+        @if (IsEditing)
+        {
+            <button type="button" @onclick="HandleCancel">Cancel</button>
+        }
+    </div>
+</form>
