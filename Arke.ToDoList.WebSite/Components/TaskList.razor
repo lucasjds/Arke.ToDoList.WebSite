@@ -1,0 +1,62 @@
+﻿@using Arke.ToDoList.WebSite.Services
+@using Arke.ToDoList.WebSite.Shared
+@code {
+    [Inject] private ITaskService TaskService { get; set; }
+    [Inject] IJSRuntime JS { get; set; }
+    [Parameter] public List<TaskItem> Tasks { get; set; } = new List<TaskItem>();
+    [Parameter] public EventCallback<TaskItem> OnEdit { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public HashSet<TaskItem> StatusSelectorVisible { get; set; } = new HashSet<TaskItem>();
+
+    private async Task ToggleStatusSelector(TaskItem task)
+    {
+        await OnCancel.InvokeAsync();
+        if (StatusSelectorVisible.Contains(task))
+        {
+            StatusSelectorVisible.Remove(task);
+        }
+        else
+        {
+            StatusSelectorVisible.Add(task);
+        }
+    }
+
+    protected async Task UpdateStatus(TaskItem task, string newStatus)
+    {
+        try
+        {
+            await Task.Run(() => TaskService.ChangeStatus(task.Id, newStatus));
+            task.Status = newStatus;
+            StatusSelectorVisible.Remove(task);
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", ex.Message);
+        }
+    }
+}
+
+<div id="taskContainer">
+    @foreach (var task in Tasks)
+    {
+        <div class="task">
+            <h3 class="taskName">Name: @task.Name</h3>
+            <h5 class="taskName">Id: @task.Id</h5>
+            <p class="taskDescription">Description: @task.Description</p>
+            <p class="taskStatus">Status: @task.Status</p>
+            <button @onclick="() => OnEdit.InvokeAsync(task)">Edit</button>
+            <button @onclick="() => ToggleStatusSelector(task)">Change Status</button>
+            @if (StatusSelectorVisible.Contains(task))
+            {
+                <div class="status-select">
+                    <select @onchange="(e) => UpdateStatus(task, e.Value.ToString())">
+                        <option value=""></option>
+                        <option value="ToDo">Todo</option>
+                        <option value="InProgress">InProgress</option>
+                        <option value="Done">Done</option>
+                    </select>
+                </div>
+            }
+        </div>
+    }
+</div>

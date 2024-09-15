@@ -17,27 +17,5 @@
 
 <TaskForm CurrentTask="currentTask" OnSubmit="HandleSubmit" IsEditing="isEditing" OnCancel="ResetForm" />
 
-<div id="taskContainer">
-    @foreach (var task in tasks)
-    {
-        <div class="task">
-            <h3 class="taskName">Name: @task.Name</h3>
-            <h5 class="taskName">Id: @task.Id</h5>
-            <p class="taskDescription">Description: @task.Description</p>
-            <p class="taskStatus">Status: @task.Status</p>
-            <button @onclick="() => StartEditTask(task)">Edit</button>
-            <button @onclick="() => ToggleStatusSelector(task)">Change Status</button>
-            @if (statusSelectorVisible.Contains(task))
-            {
-                <div class="status-select">
-                    <select @onchange="(e) => UpdateStatus(task, e.Value.ToString())">
-                        <option value=""></option>
-                        <option value="ToDo">Todo</option>
-                        <option value="InProgress">InProgress</option>
-                        <option value="Done">Done</option>
-                    </select>
-                </div>
-            }
-        </div>
-    }
-</div>
+<TaskList Tasks="tasks" OnEdit="StartEditTask" OnCancel="ResetForm" StatusSelectorVisible="statusSelectorVisible" />
+

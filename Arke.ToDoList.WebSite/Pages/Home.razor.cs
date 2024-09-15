@@ -111,31 +111,4 @@ public class HomeModel : ComponentBase
         isEditing = false;
         taskToEdit = null;
     }
-
-    protected void ToggleStatusSelector(TaskItem task)
-    {
-        ResetForm();
-        if (statusSelectorVisible.Contains(task))
-        {
-            statusSelectorVisible.Remove(task);
-        }
-        else
-        {
-            statusSelectorVisible.Add(task);
-        }
-    }
-
-    protected async Task UpdateStatus(TaskItem task, string newStatus)
-    {
-        try
-        {
-            await Task.Run(() => TaskService.ChangeStatus(task.Id, newStatus));
-            task.Status = newStatus;
-            statusSelectorVisible.Remove(task);
-        }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", ex.Message);
-        }
-    }
 }
